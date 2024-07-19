@@ -14,7 +14,8 @@ void pingHeandler(int fd){
   return ;
 }
 
-void commandHandler(int fd){
+void*  commandHandler(void* arg){
+  int fd = *((int*)arg);
   char buffer[DEFAULT_SIZE] = "";
   bzero(&buffer,sizeof(buffer));
   while(1){
@@ -24,14 +25,14 @@ void commandHandler(int fd){
     
     if(recv(fd, buffer, sizeof(buffer), 0)==-1){
       std::cout << "error: Cannot read from buffer " << std::endl;
-      return;
+      break;
     }
     std::cout << "buffer is : " << buffer << std::endl;
     if(strcasecmp(buffer, "*1\r\n$4\r\nping\r\n")==0){
       pingHeandler(fd);
     }
   }
-  return;
+  return nullptr;
 }
 
 int main(int argc, char **argv) {
@@ -76,11 +77,24 @@ int main(int argc, char **argv) {
   
   std::cout << "Waiting for a client to connect...\n";
   
-  int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
-  std::cout << "Client connected\n";
-  // send(client_fd, "+PONG\r\n", 7, 0);
-  commandHandler(client_fd);
-  close(server_fd);
+  // int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
+  // std::cout << "Client connected\n";
+  // // send(client_fd, "+PONG\r\n", 7, 0);
+  // commandHandler(client_fd);
+  // close(server_fd);
+  int client_fd;
+  while (true) {
+    if ((client_fd = accept(server_fd, (struct sockaddr*)&client_addr, (socklen_t*)&client_addr_len)) < 0) {
+        std::cerr << "accept\n";
+        continue;
+    }
+
+    // Create a detached thread for each client
+    pthread_t thread_id;
+    int* new_sock = (int*)malloc(sizeof(int));
+    *new_sock = client_fd;
+    pthread_create(&thread_id, NULL, commandHandler, (void*)new_sock);
+  }
 
   return 0;
 }
