@@ -7,6 +7,32 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#define DEFAULT_SIZE 128
+
+void pingHeandler(int fd){
+  send(fd, "+PONG\r\n", 7, 0);
+  return ;
+}
+
+void commandHandler(int fd){
+  char buffer[DEFAULT_SIZE] = "";
+  bzero(&buffer,sizeof(buffer));
+  while(1){
+    memset(&buffer,'\0',sizeof(buffer));
+    std::cout << "in while " << std::endl;
+    // bzero(&buffer, sizeof(buffer));
+    
+    if(recv(fd, buffer, sizeof(buffer), 0)==-1){
+      std::cout << "error: Cannot read from buffer " << std::endl;
+      return;
+    }
+    std::cout << "buffer is : " << buffer << std::endl;
+    if(strcasecmp(buffer, "*1\r\n$4\r\nping\r\n")==0){
+      pingHeandler(fd);
+    }
+  }
+  return;
+}
 
 int main(int argc, char **argv) {
   // Flush after every std::cout / std::cerr
@@ -16,8 +42,6 @@ int main(int argc, char **argv) {
   // You can use print statements as follows for debugging, they'll be visible when running tests.
   std::cout << "Logs from your program will appear here!\n";
 
-  // Uncomment this block to pass the first stage
-  //
   int server_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (server_fd < 0) {
    std::cerr << "Failed to create server socket\n";
@@ -54,7 +78,8 @@ int main(int argc, char **argv) {
   
   int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
   std::cout << "Client connected\n";
-  send(client_fd, "+PONG\r\n", 7, 0);
+  // send(client_fd, "+PONG\r\n", 7, 0);
+  commandHandler(client_fd);
   close(server_fd);
 
   return 0;
