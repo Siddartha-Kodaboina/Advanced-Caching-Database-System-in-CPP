@@ -27,7 +27,12 @@ std::string Parser::encode(const std::vector<std::string>& response) {
       oss << "+" << mutable_part << "\r\n";
     }
     else{
-      oss << "$" << mutable_part.size() << "\r\n" << mutable_part << "\r\n";
+      if (mutable_part.size()){
+        oss << "$" << mutable_part.size() << "\r\n" << mutable_part << "\r\n";
+      }else{
+        oss << "$" <<  "-1" << "\r\n";
+      }
+      
     }
     
   }

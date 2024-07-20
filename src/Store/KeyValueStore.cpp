@@ -28,7 +28,7 @@ std::string KeyValueStore::get(const std::string& key) {
     }
   }
   std::cout << "Key not found in key value store." << std::endl;
-  return "-1";
+  return "";
 }
 
 bool KeyValueStore::del(const std::string& key) {
