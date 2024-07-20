@@ -10,13 +10,14 @@
 #include <sstream>
 #include <vector>
 #include "Parser/Parser.hpp"
+#include "Store/KeyValueStore.hpp"
 #include "CommandHandler/CommandFactory.hpp"
 
 
 #define DEFAULT_BUFFER_DELIMITER "\r\n"
 #define DEFAULT_BUFFER_SIZE 128
 
-std::string escapeNewlines(const std::string input) {
+std::string getRawString(const std::string input) {
   std::ostringstream oss;
   for (char ch : input) {
     switch (ch) {
@@ -52,7 +53,8 @@ void*  commandHandler(void* arg){
     }
 
     Parser parser;
-    CommandFactory factory;
+    KeyValueStore store;
+    CommandFactory factory(store);
 
     std::vector<std::string> decodedCommands = parser.decode(std::string(buffer, byteReceived));
     std::cout << "****Printing decoded commands : *****" << std::endl;
@@ -60,14 +62,16 @@ void*  commandHandler(void* arg){
       std::cout << command_str << std::endl;
     }
     
-    if(decodedCommands.size()<=2){
+    if(decodedCommands.size()<1){
       std::cout << "Invalid command to server" << std::endl;
     }
 
     std::cout << "*****Printing commands : *****" << std::endl;
-    std::cout << "decodedCommands " << decodedCommands[2] << std::endl;
-    ICommand* command = factory.getCommand(decodedCommands[2]);
+    std::cout << "decodedCommands " << decodedCommands[0] << std::endl;
+    ICommand* command = factory.getCommand(decodedCommands[0]);
     std::cout << command << std::endl;
+    // send(fd, "+PONG\r\n", 7, 0);
+    // continue;
 
     std::cout << "*****Printing response  : *****" << std::endl;
     std::vector<std::string> response = command->execute(decodedCommands);
@@ -77,7 +81,7 @@ void*  commandHandler(void* arg){
 
     std::cout << "*****Printing encodedResponse  : *****" << std::endl;
     std::string encodedResponse = parser.encode(response);
-    std::cout << escapeNewlines(encodedResponse) << std::endl;
+    std::cout << getRawString(encodedResponse) << std::endl;
 
     send(fd, encodedResponse.c_str(), encodedResponse.size(), 0);
 
