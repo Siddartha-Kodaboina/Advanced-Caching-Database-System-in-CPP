@@ -1,6 +1,7 @@
 #include "CommandFactory.hpp"
 #include "PingCommand.hpp"
 #include "EchoCommand.hpp"
+#include <algorithm> 
 #include <cctype>  
 
 CommandFactory::CommandFactory() {

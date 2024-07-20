@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
         continue;
     }
 
-    // Create a detached thread for each client
+    // Creates a detached thread for each client
     pthread_t thread_id;
     int* new_sock = (int*)malloc(sizeof(int));
     *new_sock = client_fd;
