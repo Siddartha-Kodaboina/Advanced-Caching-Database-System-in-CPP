@@ -6,11 +6,11 @@
 #include <algorithm> 
 #include <cctype>  
 
-CommandFactory::CommandFactory(KeyValueStore& kvStore) : store(kvStore)  {
+CommandFactory::CommandFactory() {
   commandMap["ping"] = std::make_unique<PingCommand>();
   commandMap["echo"] = std::make_unique<EchoCommand>();
-  commandMap["set"] = std::make_unique<SetCommand>(kvStore);
-  commandMap["get"] = std::make_unique<GetCommand>(kvStore);
+  commandMap["set"] = std::make_unique<SetCommand>();
+  commandMap["get"] = std::make_unique<GetCommand>();
 }
 
 ICommand* CommandFactory::getCommand(const std::string& commandName) {

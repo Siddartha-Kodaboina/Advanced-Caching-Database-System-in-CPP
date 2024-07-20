@@ -3,9 +3,8 @@
 #include "../Store/KeyValueStore.hpp"
 
 class SetCommand : public ICommand {
-private:
-    KeyValueStore& store;
+
 public:
-    SetCommand(KeyValueStore& kvStore);
+    SetCommand();
     std::vector<std::string> execute(const std::vector<std::string>& args) override;
 };

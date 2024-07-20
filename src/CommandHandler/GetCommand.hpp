@@ -4,9 +4,7 @@
 #include "../Utils/utils.hpp"
 
 class GetCommand : public ICommand {
-private:
-    KeyValueStore& store;
 public:
-    GetCommand(KeyValueStore& kvStore);
+    GetCommand();
     std::vector<std::string> execute(const std::vector<std::string>& args) override;
 };

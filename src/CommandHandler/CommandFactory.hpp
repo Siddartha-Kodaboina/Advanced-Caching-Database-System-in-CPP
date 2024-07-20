@@ -12,9 +12,8 @@
 class CommandFactory {
 private:
   std::unordered_map<std::string, std::unique_ptr<ICommand>> commandMap;
-  KeyValueStore& store;
 public:
-  CommandFactory(KeyValueStore& kvStore);
+  CommandFactory();
   ICommand* getCommand(const std::string& commandName);
   static std::string toLower(const std::string& str);
 };

@@ -53,8 +53,7 @@ void*  commandHandler(void* arg){
     }
 
     Parser parser;
-    KeyValueStore store;
-    CommandFactory factory(store);
+    CommandFactory factory;
 
     std::vector<std::string> decodedCommands = parser.decode(std::string(buffer, byteReceived));
     std::cout << "****Printing decoded commands : *****" << std::endl;

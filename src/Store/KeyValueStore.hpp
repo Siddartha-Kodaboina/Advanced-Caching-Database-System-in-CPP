@@ -1,19 +1,24 @@
 #pragma once
-#include <string>
+#include <mutex>
 #include <unordered_map>
 #include <chrono>
-#include <mutex>
 
 class KeyValueStore {
 public:
-    using ValueWithExpiry = std::pair<std::string, std::chrono::steady_clock::time_point>;
-private:
-    std::unordered_map<std::string, ValueWithExpiry> store;
-    std::mutex storeMutex; // For thread-safety
+    static KeyValueStore& getInstance();
 
-public:
-    void set(const std::string& key, const std::string& value, int ttl);
+    void set(const std::string& key, const std::string& value, const std::string& timeType, int ttl);
+    void set(const std::string& key, const std::string& value);
     std::string get(const std::string& key);
     bool del(const std::string& key);
-    // Additional methods for other commands
+
+private:
+    KeyValueStore() {}  // Private constructor
+    std::mutex storeMutex;
+    std::unordered_map<std::string, std::pair<std::string, std::optional<std::chrono::steady_clock::time_point>>> store;
 };
+
+inline KeyValueStore& KeyValueStore::getInstance() {
+    static KeyValueStore instance;
+    return instance;
+}
