@@ -7,30 +7,81 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#define DEFAULT_SIZE 128
+#include <sstream>
+#include <vector>
+#include "Parser/Parser.hpp"
+#include "CommandHandler/CommandFactory.hpp"
 
-void pingHeandler(int fd){
-  send(fd, "+PONG\r\n", 7, 0);
-  return ;
+
+#define DEFAULT_BUFFER_DELIMITER "\r\n"
+#define DEFAULT_BUFFER_SIZE 128
+
+std::string escapeNewlines(const std::string input) {
+  std::ostringstream oss;
+  for (char ch : input) {
+    switch (ch) {
+      case '\r':
+        oss << "\\r";
+        break;
+      case '\n':
+        oss << "\\n";
+        break;
+      default:
+        oss << ch;
+    }
+  }
+  return oss.str();
 }
 
 void*  commandHandler(void* arg){
   int fd = *((int*)arg);
-  char buffer[DEFAULT_SIZE] = "";
+  char buffer[DEFAULT_BUFFER_SIZE];
+
   bzero(&buffer,sizeof(buffer));
+  int byteReceived ;
   while(1){
     memset(&buffer,'\0',sizeof(buffer));
-    std::cout << "in while " << std::endl;
-    // bzero(&buffer, sizeof(buffer));
-    
-    if(recv(fd, buffer, sizeof(buffer), 0)==-1){
+    byteReceived = recv(fd, buffer, sizeof(buffer), 0);
+    if(byteReceived==0){
+      std::cout << "Info: Connection closed at the client end " << std::endl;
+      break;
+    }
+    if(byteReceived==-1){
       std::cout << "error: Cannot read from buffer " << std::endl;
       break;
     }
-    std::cout << "buffer is : " << buffer << std::endl;
-    if(strcasecmp(buffer, "*1\r\n$4\r\nping\r\n")==0){
-      pingHeandler(fd);
+
+    Parser parser;
+    CommandFactory factory;
+
+    std::vector<std::string> decodedCommands = parser.decode(std::string(buffer, byteReceived));
+    std::cout << "****Printing decoded commands : *****" << std::endl;
+    for(const auto& command_str: decodedCommands){
+      std::cout << command_str << std::endl;
     }
+    
+    if(decodedCommands.size()<=2){
+      std::cout << "Invalid command to server" << std::endl;
+    }
+
+    std::cout << "*****Printing commands : *****" << std::endl;
+    std::cout << "decodedCommands " << decodedCommands[2] << std::endl;
+    ICommand* command = factory.getCommand(decodedCommands[2]);
+    std::cout << command << std::endl;
+
+    std::cout << "*****Printing response  : *****" << std::endl;
+    std::vector<std::string> response = command->execute(decodedCommands);
+    for(const auto& response_str: response){
+      std::cout << response_str << std::endl;
+    }
+
+    std::cout << "*****Printing encodedResponse  : *****" << std::endl;
+    std::string encodedResponse = parser.encode(response);
+    std::cout << escapeNewlines(encodedResponse) << std::endl;
+
+    send(fd, encodedResponse.c_str(), encodedResponse.size(), 0);
+
+    
   }
   return nullptr;
 }
@@ -77,11 +128,6 @@ int main(int argc, char **argv) {
   
   std::cout << "Waiting for a client to connect...\n";
   
-  // int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
-  // std::cout << "Client connected\n";
-  // // send(client_fd, "+PONG\r\n", 7, 0);
-  // commandHandler(client_fd);
-  // close(server_fd);
   int client_fd;
   while (true) {
     if ((client_fd = accept(server_fd, (struct sockaddr*)&client_addr, (socklen_t*)&client_addr_len)) < 0) {
