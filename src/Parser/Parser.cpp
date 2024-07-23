@@ -6,10 +6,15 @@ std::vector<std::string> Parser::decode(const std::string& input) {
   std::vector<std::string> commands;
   std::istringstream iss(input);
   std::string segment;
+  int ind=0;
   while (std::getline(iss, segment, '\r')) {
     auto pos = segment.find('\n');
     if (pos != std::string::npos) segment.erase(pos, 1);
-    if (segment[0]=='*' || segment[0]=='$') continue;
+    if (ind==0 && segment[0]=='*') {
+      ind += 1;
+      continue;
+    }
+    if(segment[0]=='$') continue;
     if (!segment.empty()) commands.push_back(segment);
   }
 
