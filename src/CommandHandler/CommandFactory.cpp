@@ -4,6 +4,7 @@
 #include "SetCommand.hpp"
 #include "GetCommand.hpp"
 #include "TypeCommand.hpp"
+#include "XaddCommand.hpp"
 #include <algorithm> 
 #include <cctype>  
 
@@ -13,6 +14,7 @@ CommandFactory::CommandFactory() {
   commandMap["set"] = std::make_unique<SetCommand>();
   commandMap["get"] = std::make_unique<GetCommand>();
   commandMap["type"] = std::make_unique<TypeCommand>();
+  commandMap["xadd"] = std::make_unique<XaddCommand>();
 }
 
 ICommand* CommandFactory::getCommand(const std::string& commandName) {

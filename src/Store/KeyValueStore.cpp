@@ -1,40 +1,71 @@
 #include "KeyValueStore.hpp"
 #include "../Utils/utils.hpp"
-#include<iostream>
+#include <iostream>
 
-void KeyValueStore::set(const std::string& key, const std::string& value) {
-  std::lock_guard<std::mutex> lock(storeMutex);
-  store[key] = std::make_pair(value, std::nullopt);
-}
-void KeyValueStore::set(const std::string& key, const std::string& value, const std::string& timeType, int ttl) {
-  std::lock_guard<std::mutex> lock(storeMutex);
-  if(utils::toLowerCase(timeType)=="ex"){
-    ttl = ttl * 1000;
-  }
-  
-  auto expiry = std::chrono::steady_clock::now() + std::chrono::milliseconds(ttl);
-  store[key] = std::make_pair(value, expiry);
+KeyValue& KeyValueStore::getInstance() {
+    static KeyValue instance;
+    return instance;
 }
 
-std::string KeyValueStore::get(const std::string& key) {
-  std::lock_guard<std::mutex> lock(storeMutex);
-  auto it = store.find(key);
-  if (it != store.end()) {
-    std::cout << "It is found in key value store." << std::endl;
-    if (!it->second.second || std::chrono::steady_clock::now() < it->second.second.value()) {
-      return it->second.first;
-    } else {
-      std::cout << "But the key is expired." << std::endl;
+void KeyValue::set(const std::string& key, const Value& value) {
+    std::lock_guard<std::mutex> lock(storeMutex);
+    store[key] = {value, std::nullopt};
+}
+
+void KeyValue::set(const std::string& key, const Value& value, const std::string& timeType, int ttl) {
+    std::lock_guard<std::mutex> lock(storeMutex);
+    auto expiry = std::chrono::steady_clock::now() + (timeType == "EX" ? std::chrono::seconds(ttl) : std::chrono::milliseconds(ttl));
+    store[key] = {value, expiry};
+}
+
+Value KeyValue::get(const std::string& key) {
+    std::lock_guard<std::mutex> lock(storeMutex);
+    auto it = store.find(key);
+    if (it != store.end() && (!it->second.expiration || std::chrono::steady_clock::now() < it->second.expiration.value())) {
+        return it->second.value;
     }
-  }
-  std::cout << "Key not found in key value store." << std::endl;
-  return "";
+    return "";
 }
 
-bool KeyValueStore::del(const std::string& key) {
-  std::lock_guard<std::mutex> lock(storeMutex);
-  bool erased = store.erase(key) > 0;
-  if (erased) std::cout << "Key '" << key << "' deleted.\n";
-  else std::cout << "Key '" << key << "' not found.\n";
-  return erased;
+bool KeyValue::del(const std::string& key) {
+    std::lock_guard<std::mutex> lock(storeMutex);
+    return store.erase(key) > 0;
 }
+
+void KeyValue::xadd(const std::string& streamKey, const std::string& id, const std::unordered_map<std::string, std::string>& fieldValues) {
+    std::lock_guard<std::mutex> lock(storeMutex);
+    if (!store.count(streamKey) || !std::holds_alternative<std::shared_ptr<Stream>>(store[streamKey].value)) {
+        store[streamKey].value = std::make_shared<Stream>();
+    }
+    auto& stream = *std::get<std::shared_ptr<Stream>>(store[streamKey].value);
+    stream.push_back({id, fieldValues});
+}
+
+Stream KeyValue::xrange(const std::string& streamKey, const std::string& start, const std::string& end) {
+    std::lock_guard<std::mutex> lock(storeMutex);
+    Stream result;
+    auto it = store.find(streamKey);
+    if (it != store.end() && std::holds_alternative<std::shared_ptr<Stream>>(it->second.value)) {
+        const Stream& entries = *std::get<std::shared_ptr<Stream>>(it->second.value);
+        for (const auto& entry : entries) {
+            if ((start == "-" || entry.id >= start) && (end == "+" || entry.id <= end)) {
+                result.push_back(entry);
+            }
+        }
+    }
+    return result;
+}
+
+std::string KeyValue::type(const std::string& key) {
+    std::lock_guard<std::mutex> lock(storeMutex);
+    auto it = store.find(key);
+    if (it != store.end()) {
+        if (std::holds_alternative<std::string>(it->second.value)) {
+            return "string";
+        } else if (std::holds_alternative<std::shared_ptr<Stream>>(it->second.value)) {
+            return "stream";
+        }
+    }
+    return "none";
+}
+

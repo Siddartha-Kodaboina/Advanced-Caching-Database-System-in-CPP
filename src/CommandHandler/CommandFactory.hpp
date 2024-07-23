@@ -9,6 +9,7 @@
 #include "SetCommand.hpp"
 #include "GetCommand.hpp"
 #include "TypeCommand.hpp"
+#include "XaddCommand.hpp"
 
 class CommandFactory {
 private:
