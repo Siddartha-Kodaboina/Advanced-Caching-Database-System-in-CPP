@@ -32,13 +32,30 @@ bool KeyValue::del(const std::string& key) {
     return store.erase(key) > 0;
 }
 
-void KeyValue::xadd(const std::string& streamKey, const std::string& id, const std::unordered_map<std::string, std::string>& fieldValues) {
+std::string KeyValue::xadd(const std::string& streamKey, const std::string& id, const std::unordered_map<std::string, std::string>& fieldValues) {
     std::lock_guard<std::mutex> lock(storeMutex);
-    if (!store.count(streamKey) || !std::holds_alternative<std::shared_ptr<Stream>>(store[streamKey].value)) {
+    int returnCode = utils::IsValidStreamID(id, millisecondsTime, sequenceNumber);
+    if(returnCode==0){
+      long long streamIDsMilliSeconds = utils::getStreamIDStringMillisecondsTime(id);
+      int streamIDsSequenceNumber = utils::getStreamIDStringSequenceNumber(id);
+      if (streamIDsMilliSeconds==-1LL || streamIDsSequenceNumber==-1){
+        return "-ERR milliSeconds and SequenceNumber do not have correct values";
+      }
+      millisecondsTime = streamIDsMilliSeconds;
+      streamIDsSequenceNumber = streamIDsSequenceNumber;
+      if (!store.count(streamKey) || !std::holds_alternative<std::shared_ptr<Stream>>(store[streamKey].value)) {
         store[streamKey].value = std::make_shared<Stream>();
+      }
+      auto& stream = *std::get<std::shared_ptr<Stream>>(store[streamKey].value);
+      stream.push_back({id, fieldValues});
+      return '$'+id;
     }
-    auto& stream = *std::get<std::shared_ptr<Stream>>(store[streamKey].value);
-    stream.push_back({id, fieldValues});
+    else if (returnCode==1){
+        return "-ERR The ID specified in XADD must be greater than 0-0";
+    }
+    else{
+        return "-ERR The ID specified in XADD is equal or smaller than the target stream top item";
+    }
 }
 
 Stream KeyValue::xrange(const std::string& streamKey, const std::string& start, const std::string& end) {

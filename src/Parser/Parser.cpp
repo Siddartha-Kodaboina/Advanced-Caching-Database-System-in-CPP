@@ -23,8 +23,12 @@ std::string Parser::encode(const std::vector<std::string>& response) {
     std::string mutable_part = part; 
     char firstChar = mutable_part[0];
     mutable_part.erase(0, 1);
+
     if (firstChar=='+'){
       oss << "+" << mutable_part << "\r\n";
+    }
+    else if (firstChar=='-'){
+      oss << "-" << mutable_part << "\r\n";
     }
     else{
       if (mutable_part.size()){

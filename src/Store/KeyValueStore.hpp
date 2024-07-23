@@ -28,12 +28,14 @@ public:
     Value get(const std::string& key);
     std::string type(const std::string& key);
     bool del(const std::string& key);
-    void xadd(const std::string& streamKey, const std::string& id, const std::unordered_map<std::string, std::string>& fieldValues);
+    std::string xadd(const std::string& streamKey, const std::string& id, const std::unordered_map<std::string, std::string>& fieldValues);
     Stream xrange(const std::string& streamKey, const std::string& start, const std::string& end);
 
 private:
     std::mutex storeMutex;
     std::unordered_map<std::string, TimedValue> store;
+    long long millisecondsTime=0;
+    int sequenceNumber=0;
 };
 
 class KeyValueStore {

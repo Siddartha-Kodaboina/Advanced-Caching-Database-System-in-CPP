@@ -14,8 +14,8 @@ std::vector<std::string> XaddCommand::execute(const std::vector<std::string>& ar
             fieldValues[args[i]] = args[i + 1];
         }
 
-        KeyValueStore::getInstance().xadd(streamKey, id, fieldValues);
-        return {'$'+id};
+        return {KeyValueStore::getInstance().xadd(streamKey, id, fieldValues)};
+        
     }
     return {"-ERR wrong number of arguments"};
 }
