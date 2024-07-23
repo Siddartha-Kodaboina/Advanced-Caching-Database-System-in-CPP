@@ -3,6 +3,7 @@
 #include "EchoCommand.hpp"
 #include "SetCommand.hpp"
 #include "GetCommand.hpp"
+#include "TypeCommand.hpp"
 #include <algorithm> 
 #include <cctype>  
 
@@ -11,6 +12,7 @@ CommandFactory::CommandFactory() {
   commandMap["echo"] = std::make_unique<EchoCommand>();
   commandMap["set"] = std::make_unique<SetCommand>();
   commandMap["get"] = std::make_unique<GetCommand>();
+  commandMap["type"] = std::make_unique<TypeCommand>();
 }
 
 ICommand* CommandFactory::getCommand(const std::string& commandName) {
