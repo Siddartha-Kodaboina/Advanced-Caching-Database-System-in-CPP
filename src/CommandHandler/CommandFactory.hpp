@@ -10,6 +10,7 @@
 #include "GetCommand.hpp"
 #include "TypeCommand.hpp"
 #include "XaddCommand.hpp"
+#include "XrangeCommand.hpp"
 
 class CommandFactory {
 private:

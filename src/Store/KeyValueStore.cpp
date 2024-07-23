@@ -1,6 +1,7 @@
 #include "KeyValueStore.hpp"
 #include "../Utils/utils.hpp"
 #include <iostream>
+#include <limits>
 
 KeyValue& KeyValueStore::getInstance() {
     static KeyValue instance;
@@ -40,9 +41,10 @@ std::string KeyValue::xadd(const std::string& streamKey, const std::string& id, 
       if (!store.count(streamKey) || !std::holds_alternative<std::shared_ptr<Stream>>(store[streamKey].value)) {
         store[streamKey].value = std::make_shared<Stream>();
       }
+      std::string newID = std::to_string(millisecondsTime)+'-'+std::to_string(sequenceNumber);
       auto& stream = *std::get<std::shared_ptr<Stream>>(store[streamKey].value);
-      stream.push_back({id, fieldValues});
-      return '$'+std::to_string(millisecondsTime)+'-'+std::to_string(sequenceNumber);
+      stream.push_back({newID, fieldValues});
+      return '$'+newID;
     }
     else if (returnCode==1){
         return "-ERR The ID specified in XADD must be greater than 0-0";
@@ -55,17 +57,22 @@ std::string KeyValue::xadd(const std::string& streamKey, const std::string& id, 
 Stream KeyValue::xrange(const std::string& streamKey, const std::string& start, const std::string& end) {
     std::lock_guard<std::mutex> lock(storeMutex);
     Stream result;
+
+    std::string resolvedStart = (start == "-") ? "" : start;
+    std::string resolvedEnd = (end == "+") ? std::to_string(std::numeric_limits<long long>::max()) + "-999999" : end;
+
     auto it = store.find(streamKey);
     if (it != store.end() && std::holds_alternative<std::shared_ptr<Stream>>(it->second.value)) {
         const Stream& entries = *std::get<std::shared_ptr<Stream>>(it->second.value);
         for (const auto& entry : entries) {
-            if ((start == "-" || entry.id >= start) && (end == "+" || entry.id <= end)) {
+            if ((resolvedStart.empty() || entry.id >= resolvedStart) && (resolvedEnd.empty() || entry.id <= resolvedEnd)) {
                 result.push_back(entry);
             }
         }
     }
     return result;
 }
+
 
 std::string KeyValue::type(const std::string& key) {
     std::lock_guard<std::mutex> lock(storeMutex);
