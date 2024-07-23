@@ -36,21 +36,13 @@ std::string KeyValue::xadd(const std::string& streamKey, const std::string& id, 
     std::lock_guard<std::mutex> lock(storeMutex);
     int returnCode = utils::IsValidStreamID(id, millisecondsTime, sequenceNumber);
     if(returnCode==0){
-      long long streamIDsMilliSeconds = utils::getStreamIDStringMillisecondsTime(id);
-      int streamIDsSequenceNumber = utils::getStreamIDStringSequenceNumber(id);
-      if (streamIDsMilliSeconds==-1LL || streamIDsSequenceNumber==-1){
-        return "-ERR milliSeconds and SequenceNumber do not have correct values";
-      }
-      std::cout << "before : " << streamIDsMilliSeconds << " " << streamIDsSequenceNumber << " " << millisecondsTime << " " << sequenceNumber << std::endl;
-      millisecondsTime = streamIDsMilliSeconds;
-      sequenceNumber = streamIDsSequenceNumber;
-      std::cout << "after : " << streamIDsMilliSeconds << " " << streamIDsSequenceNumber << " " << millisecondsTime << " " << sequenceNumber << std::endl;
+      utils::setStreamIDNumbers(id, millisecondsTime, sequenceNumber);
       if (!store.count(streamKey) || !std::holds_alternative<std::shared_ptr<Stream>>(store[streamKey].value)) {
         store[streamKey].value = std::make_shared<Stream>();
       }
       auto& stream = *std::get<std::shared_ptr<Stream>>(store[streamKey].value);
       stream.push_back({id, fieldValues});
-      return '$'+id;
+      return '$'+std::to_string(millisecondsTime)+'-'+std::to_string(sequenceNumber);
     }
     else if (returnCode==1){
         return "-ERR The ID specified in XADD must be greater than 0-0";
