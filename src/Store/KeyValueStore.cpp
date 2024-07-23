@@ -41,8 +41,10 @@ std::string KeyValue::xadd(const std::string& streamKey, const std::string& id, 
       if (streamIDsMilliSeconds==-1LL || streamIDsSequenceNumber==-1){
         return "-ERR milliSeconds and SequenceNumber do not have correct values";
       }
+      std::cout << "before : " << streamIDsMilliSeconds << " " << streamIDsSequenceNumber << " " << millisecondsTime << " " << sequenceNumber << std::endl;
       millisecondsTime = streamIDsMilliSeconds;
-      streamIDsSequenceNumber = streamIDsSequenceNumber;
+      sequenceNumber = streamIDsSequenceNumber;
+      std::cout << "after : " << streamIDsMilliSeconds << " " << streamIDsSequenceNumber << " " << millisecondsTime << " " << sequenceNumber << std::endl;
       if (!store.count(streamKey) || !std::holds_alternative<std::shared_ptr<Stream>>(store[streamKey].value)) {
         store[streamKey].value = std::make_shared<Stream>();
       }

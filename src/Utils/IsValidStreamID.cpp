@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include <string>
+#include <iostream>
 #include <sstream>
 
 namespace utils {
@@ -23,7 +24,7 @@ namespace utils {
         } catch (const std::out_of_range& e) {
             return -1;
         }
-
+        std::cout << inputMST << " " << inputSN << " " << millisecondsTime << " " << sequenceNumber << std::endl;
         if (inputMST == 0 && inputSN == 0) {
             return 1;
         } else if (inputMST < millisecondsTime) {
