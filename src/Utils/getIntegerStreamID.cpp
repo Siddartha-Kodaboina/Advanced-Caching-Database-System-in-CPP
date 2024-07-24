@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <chrono>
+#include <iostream>
 
 namespace utils {
      long long getStreamIDStringMillisecondsTime(const std::string& input) {
@@ -77,6 +78,7 @@ namespace utils {
 
       if (asteriskPos != std::string::npos && input.back() == '*') {
         // Handle the case where time is specified but sequence number is auto-incremented
+        std::cout << "Handle the case where time is specified but sequence number is auto-incremented" << std::endl;
         std::string timePart = input.substr(0, asteriskPos);
         long long streamIDsMilliSeconds = utils::getStreamIDStringMillisecondsTime(timePart);
 

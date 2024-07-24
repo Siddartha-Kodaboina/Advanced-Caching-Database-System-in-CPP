@@ -25,6 +25,7 @@ namespace utils {
             if(strSN=="*"){
                 std::cout << "Star match " << strSN << std::endl;
                 if(inputMST>=millisecondsTime){
+                    std::cout << "Star match inside if " << strSN << std::endl;
                     return 0;
                 }else{
                     return 2;
