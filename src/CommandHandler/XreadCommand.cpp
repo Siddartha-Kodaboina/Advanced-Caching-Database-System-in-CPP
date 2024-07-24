@@ -7,17 +7,9 @@ XreadCommand::XreadCommand() {}
 
 std::vector<std::string> XreadCommand::execute(const std::vector<std::string>& args) {
     std::cout << "XrangeCommand was it here?:\n-----------" << std::endl;
-    if (args.size() == 3 ) {
-        
-        std::istringstream iss(args[2]);
-        std::vector<std::string> tokens;
-        std::string token;
-        while (iss >> token) {
-            tokens.push_back(token);
-        }
-
-        std::string streamKey = tokens[0];
-        std::string id = tokens[1];
+    if (args.size() == 4 ) {
+        std::string streamKey = args[2];
+        std::string id = args[3];
         std::cout << "XaddCommand was it here?:\n++++++" << std::endl;
         auto entries = KeyValueStore::getInstance().xread(streamKey, id);
         return formatForRESP(entries, streamKey);
