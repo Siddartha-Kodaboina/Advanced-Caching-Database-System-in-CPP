@@ -7,9 +7,9 @@ XreadCommand::XreadCommand() {}
 
 std::vector<std::string> XreadCommand::execute(const std::vector<std::string>& args) {
     std::cout << "XrangeCommand was it here?:\n-----------" << std::endl;
-    if (args.size() == 2 ) {
+    if (args.size() == 3 ) {
         
-        std::istringstream iss(args[1]);
+        std::istringstream iss(args[2]);
         std::vector<std::string> tokens;
         std::string token;
         while (iss >> token) {
