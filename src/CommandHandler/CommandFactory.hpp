@@ -11,6 +11,7 @@
 #include "TypeCommand.hpp"
 #include "XaddCommand.hpp"
 #include "XrangeCommand.hpp"
+#include "XreadCommand.hpp"
 
 class CommandFactory {
 private:

@@ -30,6 +30,7 @@ public:
     bool del(const std::string& key);
     std::string xadd(const std::string& streamKey, const std::string& id, const std::unordered_map<std::string, std::string>& fieldValues);
     Stream xrange(const std::string& streamKey, const std::string& start, const std::string& end);
+    Stream xread(const std::string& streamKey);
 
 private:
     std::mutex storeMutex;

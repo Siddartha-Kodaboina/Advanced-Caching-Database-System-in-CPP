@@ -6,6 +6,7 @@
 #include "TypeCommand.hpp"
 #include "XaddCommand.hpp"
 #include "XrangeCommand.hpp"
+#include "XreadCommand.hpp"
 #include <algorithm> 
 #include <cctype>  
 
@@ -17,6 +18,7 @@ CommandFactory::CommandFactory() {
   commandMap["type"] = std::make_unique<TypeCommand>();
   commandMap["xadd"] = std::make_unique<XaddCommand>();
   commandMap["xrange"] = std::make_unique<XrangeCommand>();
+  commandMap["xread"] = std::make_unique<XreadCommand>();
 }
 
 ICommand* CommandFactory::getCommand(const std::string& commandName) {
