@@ -73,7 +73,7 @@ Stream KeyValue::xrange(const std::string& streamKey, const std::string& start, 
     return result;
 }
 
-Stream KeyValue::xread(const std::string& streamKey) {
+Stream KeyValue::xread(const std::string& streamKey, const std::string& start) {
     std::lock_guard<std::mutex> lock(storeMutex);
     Stream result;
 
@@ -81,7 +81,10 @@ Stream KeyValue::xread(const std::string& streamKey) {
     if (it != store.end() && std::holds_alternative<std::shared_ptr<Stream>>(it->second.value)) {
         const Stream& entries = *std::get<std::shared_ptr<Stream>>(it->second.value);
         for (const auto& entry : entries) {
-            result.push_back(entry);
+            if (entry.id >= start) {
+                result.push_back(entry);
+            }
+            
         }
     }
     return result;

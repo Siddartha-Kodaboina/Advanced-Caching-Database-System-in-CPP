@@ -6,10 +6,11 @@ XreadCommand::XreadCommand() {}
 
 std::vector<std::string> XreadCommand::execute(const std::vector<std::string>& args) {
     std::cout << "XrangeCommand was it here?:\n-----------" << std::endl;
-    if (args.size() >= 2 ) {
+    if (args.size() >= 3 ) {
         std::string streamKey = args[1];
+        std::string id = args[2];
         std::cout << "XaddCommand was it here?:\n++++++" << std::endl;
-        auto entries = KeyValueStore::getInstance().xread(streamKey);
+        auto entries = KeyValueStore::getInstance().xread(streamKey, id);
         return formatForRESP(entries, streamKey);
         
     }
