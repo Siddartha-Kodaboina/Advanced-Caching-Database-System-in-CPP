@@ -43,7 +43,7 @@ std::string KeyValue::xadd(const std::string& streamKey, const std::string& id, 
       }
       std::string newID = std::to_string(millisecondsTime)+'-'+std::to_string(sequenceNumber);
       auto& stream = *std::get<std::shared_ptr<Stream>>(store[streamKey].value);
-      stream.push_back({newID, fieldValues});
+      stream.push_back({millisecondsTime, sequenceNumber, newID, fieldValues});
       return '$'+newID;
     }
     else if (returnCode==1){
@@ -73,15 +73,28 @@ Stream KeyValue::xrange(const std::string& streamKey, const std::string& start, 
     return result;
 }
 
-Stream KeyValue::xread(const std::string& streamKey, const std::string& start) {
+Stream KeyValue::xread(const std::string& streamKey, const std::string& start, const std::string& blockMilliSeconds) {
     std::lock_guard<std::mutex> lock(storeMutex);
     Stream result;
 
     auto it = store.find(streamKey);
+    const int resolvedBlockMilliSeconds = blockMilliSeconds=="-1"? 0 :  std::stoll(blockMilliSeconds);
+
+    // Calculating now milli seconds
+    auto now = std::chrono::system_clock::now();
+    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+    auto epoch = now_ms.time_since_epoch();
+    // Upper time limit to the block
+    long long nowMillisecondsTime = std::chrono::duration_cast<std::chrono::milliseconds>(epoch).count();
+
+    // Lower time limit to the block
+    const int blockStartMilliSecondsStart = blockMilliSeconds=="-1"?0:nowMillisecondsTime - resolvedBlockMilliSeconds;
+
     if (it != store.end() && std::holds_alternative<std::shared_ptr<Stream>>(it->second.value)) {
         const Stream& entries = *std::get<std::shared_ptr<Stream>>(it->second.value);
         for (const auto& entry : entries) {
-            if (entry.id >= start) {
+            if (entry.id >= start && entry.millisecondsTime>=blockStartMilliSecondsStart) {
+                std::cout << " " << entry.id << " " << entry.millisecondsTime << " " << blockStartMilliSecondsStart << " " << std::endl;
                 result.push_back(entry);
             }
             

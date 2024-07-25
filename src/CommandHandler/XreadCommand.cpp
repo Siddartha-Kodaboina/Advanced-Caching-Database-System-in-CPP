@@ -7,15 +7,23 @@ XreadCommand::XreadCommand() {}
 
 std::vector<std::string> XreadCommand::execute(const std::vector<std::string>& args) {
     std::cout << "XrangeCommand was it here?:\n-----------" << std::endl;
-    if (args.size() >= 4 && args.size()%2==0 ) {
+    
+    if (args.size() >= 6 && args.size()%2==0 ) {
+      auto pos = std::find(args.begin(), args.end(), "block");
+      std::string blockMilliSeconds = "-1";
+      int streamsStartsAt = 2;
+      if(pos!=args.end()){
+        streamsStartsAt = 4;
+        blockMilliSeconds = args[2];
+      }
       std::vector<std::string> streamKeys = {};
       std::vector<std::string> ids = {};
-      int lenOfStreamIDs = args.size()-2;
+      int lenOfStreamIDs = args.size()-streamsStartsAt;
       for(int i = 0; i < lenOfStreamIDs;i++){
         if(i<(lenOfStreamIDs/2)){
-          streamKeys.push_back(args[2+i]);
+          streamKeys.push_back(args[streamsStartsAt+i]);
         }else{
-          ids.push_back(args[2+i]);
+          ids.push_back(args[streamsStartsAt+i]);
         }
       }
       std::vector<std::pair<Stream, std::string>> streams = {};
@@ -24,7 +32,7 @@ std::vector<std::string> XreadCommand::execute(const std::vector<std::string>& a
         std::string id = ids[i];
         std::cout << "Stream is " << streamKey << std::endl;
         std::cout << "id is " << id << std::endl;
-        Stream stream = KeyValueStore::getInstance().xread(streamKey, id);
+        Stream stream = KeyValueStore::getInstance().xread(streamKey, id, blockMilliSeconds);
         streams.push_back({stream, streamKey});
       }
       return formatForRESP(streams);

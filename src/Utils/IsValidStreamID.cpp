@@ -24,6 +24,8 @@ namespace utils {
             inputMST = std::stoll(strMST);
             if(strSN=="*"){
                 std::cout << "Star match " << strSN << std::endl;
+                std::cout << "inputMST " << inputMST << std::endl;
+                std::cout << "millisecondsTime " << millisecondsTime << std::endl;
                 if(inputMST>=millisecondsTime){
                     std::cout << "Star match inside if " << strSN << std::endl;
                     return 0;
@@ -49,3 +51,10 @@ namespace utils {
         }
     }
 }
+
+/*
+redis-cli xadd "banana" "0-*" temperature 2
+redis-cli xadd "banana" "0-*" temperature 3
+redis-cli xadd "banana" "0-*" temperature 4
+redis-cli xread block 10000 streams banana 0-4
+*/
