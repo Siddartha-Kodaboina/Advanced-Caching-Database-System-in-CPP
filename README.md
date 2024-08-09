@@ -10,7 +10,7 @@ event loops, the Redis protocol and more.
 **Note**: If you're viewing this repo on GitHub, head over to
 [codecrafters.io](https://codecrafters.io) to try the challenge.
 
-# redis-cpp - lightweight C++ client library for Redis
+# redis-cpp - lightweight C++ Redis Server Clone
 redis-cpp is a C++17 library for executing Redis [commands](https://redis.io/commands) with support for pipelines and the publish / subscribe pattern. Moreover, you can extend the library with your own stream implementation to communicate with Redis. You can also use it like a RESP serializer (pure core). You need only know a couple of functions to start working with Redis.
 
 ```cpp
