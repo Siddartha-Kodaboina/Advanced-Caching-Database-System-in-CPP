@@ -1,0 +1,20 @@
+#pragma once
+
+#include <vector>
+#include <string>
+#include <memory>
+
+class Value;
+
+class IDatabase
+{
+public:
+  virtual ~IDatabase() = default;
+  virtual std::shared_ptr<Value> get(const std::string &key) = 0;
+  virtual void set(const std::string &key, std::shared_ptr<Value> value) = 0;
+  virtual bool del(const std::string &key) = 0;
+  virtual size_t size() const = 0;
+  virtual size_t capacity() const = 0;
+  virtual void clear() = 0;
+  virtual std::vector<std::string> keys() = 0;
+};
